@@ -13,8 +13,12 @@ export const ProtectedAPI = axios.create({
 ProtectedAPI.interceptors.request.use(
   (config) => {
     const token = Cookies.get("accessToken");
+    const user = localStorage.getItem("user");
+    const parsedUser = JSON.parse(user);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      console.log("User", user)
+      config.headers.tenant_id = parsedUser.tenantId;
     }
     return config;
   },

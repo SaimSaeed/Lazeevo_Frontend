@@ -89,11 +89,7 @@ export default function HomePage() {
         className={`min-h-screen flex items-center justify-center px-6 py-24 ${isDark ? "bg-[#0c0c0e]" : "bg-[#f0fafa]"}`}
       >
         <div className="max-w-4xl mx-auto text-center flex flex-col items-center gap-8">
-          <div
-            className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium border ${isDark ? "bg-teal-500/10 border-teal-500/20 text-teal-400" : "bg-teal-50 border-teal-200 text-teal-600"}`}
-          >
-            <Zap size={12} /> Now with delivery tracking
-          </div>
+        
 
           <h1
             className={`text-5xl md:text-7xl font-extrabold tracking-tight leading-none ${isDark ? "text-[#f0f0f4]" : "text-[#111113]"}`}
