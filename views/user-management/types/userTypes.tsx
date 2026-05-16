@@ -4,11 +4,19 @@ export interface StaffUser {
   name: string;
   email: string;
   role: { name: string };
+  tenant?: { id: number; name: string } | null;
   isActive: boolean;
   createdAt: string;
 }
 
 export interface DeleteModalProps {
+  isDark: boolean;
+  user: StaffUser;
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+export interface ToggleModalProps {
   isDark: boolean;
   user: StaffUser;
   onClose: () => void;

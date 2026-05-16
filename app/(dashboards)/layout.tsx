@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "../globals.css";
 import Sidebar from "@/components/common/SideBar";
+import TrialBanner from "@/components/common/TrialBanner";
+import TrialEndedModal from "@/components/common/TrialEndedModal";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,9 +26,13 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className={`${geistSans.variable} ${geistMono.variable} antialiased flex`}>
+    <div className={`${geistSans.variable} ${geistMono.variable} antialiased flex min-h-screen`}>
+      <TrialEndedModal />
       <Sidebar/>
-      {children}
+      <div className="flex flex-col flex-1 min-w-0">
+        <TrialBanner />
+        {children}
+      </div>
     </div>
   );
 }

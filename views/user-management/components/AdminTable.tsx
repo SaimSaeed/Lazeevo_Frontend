@@ -10,14 +10,14 @@ import AddUserModal from "./AddUserModal";
 import DeactivateUserModal from "./DeactivateUserModal";
 import ActivateUserModal from "./ActivateUserModal";
 
-function KitchenTable({ activeTab }: { activeTab?: string }) {
+function AdminTable({ activeTab }: { activeTab?: string }) {
   const { isDark } = useTheme();
 
   // ── State ────────────────────────────────────────────────────────────────
-  const [data,         setData]         = useState<StaffUser[]>([]);
-  const [total,        setTotal]        = useState(0);
-  const [page,         setPage]         = useState(1);
-  const [pageSize,     setPageSize]     = useState(10);
+  const [data,             setData]             = useState<StaffUser[]>([]);
+  const [total,            setTotal]            = useState(0);
+  const [page,             setPage]             = useState(1);
+  const [pageSize,         setPageSize]         = useState(10);
   const [loading,          setLoading]          = useState(true);
   const [showAdd,          setShowAdd]          = useState(false);
   const [deactivateTarget, setDeactivateTarget] = useState<StaffUser | null>(null);
@@ -53,13 +53,13 @@ function KitchenTable({ activeTab }: { activeTab?: string }) {
     setLoading(true);
     try {
       const params: Record<string, string | number> = {
-        role:     "KITCHEN",
+        role:     "ADMIN",
         page,
         pageSize,
       };
       if (searchTerm.trim()) params.search = searchTerm.trim();
 
-      const res = await ProtectedAPI.get("/user/staff", { params });
+      const res = await ProtectedAPI.get("/user/admins", { params });
       const { data: staff, total: count } = res.data as {
         data:       StaffUser[];
         total:      number;
@@ -71,7 +71,7 @@ function KitchenTable({ activeTab }: { activeTab?: string }) {
       setData(staff);
       setTotal(count);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message ?? "Failed to load cashiers.");
+      toast.error(err?.response?.data?.message ?? "Failed to load admins.");
     } finally {
       setLoading(false);
     }
@@ -156,7 +156,6 @@ function KitchenTable({ activeTab }: { activeTab?: string }) {
   // ── Header actions ────────────────────────────────────────────────────────
   const headerActions = (
     <div className="flex items-center gap-2">
-
       {/* Search bar — expands on click */}
       <div className={`flex items-center gap-2 transition-all duration-200 overflow-hidden rounded-xl border ${
         searchOpen
@@ -180,7 +179,7 @@ function KitchenTable({ activeTab }: { activeTab?: string }) {
               autoFocus
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Search cashiers..."
+              placeholder="Search admins..."
               className={`flex-1 text-xs outline-none bg-transparent ${
                 isDark ? "text-white placeholder-[#444]" : "text-[#111] placeholder-[#bbb]"
               }`}
@@ -194,23 +193,13 @@ function KitchenTable({ activeTab }: { activeTab?: string }) {
           </>
         )}
       </div>
-
-      {!isSuper && (
-        <Button
-          onClick={() => setShowAdd(true)}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white bg-teal-600 hover:bg-teal-700 transition-all hover:scale-[1.01]"
-        >
-          <Plus size={15} />
-          Add Kitchen Staff
-        </Button>
-      )}
     </div>
   );
 
   return (
     <>
       <DynamicTable
-        title="Kitchen Staff"
+        title="Restaurant Admins"
         columns={columns}
         data={data}
         loading={loading}
@@ -225,7 +214,7 @@ function KitchenTable({ activeTab }: { activeTab?: string }) {
       {showAdd && (
         <AddUserModal
           isDark={isDark}
-          role="KITCHEN"
+          role="ADMIN"
           onClose={() => setShowAdd(false)}
           onSuccess={fetchStaff}
         />
@@ -252,4 +241,4 @@ function KitchenTable({ activeTab }: { activeTab?: string }) {
   );
 }
 
-export default KitchenTable;
+export default AdminTable;

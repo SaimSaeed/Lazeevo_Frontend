@@ -26,18 +26,18 @@ ProtectedAPI.interceptors.request.use(
 );
 
 //  Response interceptor (NEW)
-ProtectedAPI.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    const status = error?.response?.status;
-    const currentPath = window.location.pathname;
+// ProtectedAPI.interceptors.response.use(
+//   (response) => response,
+//   (error) => {
+//     const status = error?.response?.status;
+//     const currentPath = window.location.pathname;
 
-    if (status === 401 || status === 403) {
-      Cookies.remove("accessToken");
-      localStorage.clear();
-      if (!currentPath.includes("/signin")) window.location.href = "/signin";
-    }
+//     if (status === 401 || status === 403) {
+//       Cookies.remove("accessToken");
+//       localStorage.clear();
+//       if (!currentPath.includes("/signin")) window.location.href = "/signin";
+//     }
 
-    return Promise.reject(error);
-  },
-);
+//     return Promise.reject(error);
+//   },
+// );

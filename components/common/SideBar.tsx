@@ -1,6 +1,6 @@
 // components/common/Sidebar.tsx
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTheme } from "@/context/themeContext";
 import {
   LayoutDashboard, Users, LogOut,
@@ -24,10 +24,12 @@ interface SidebarContentProps {
   onClose?:     () => void;
   pathname:     string;
   onLogout:     () => void;
+  tenant?:      any;
+  user?:        any;
 }
 
 function SidebarContent({
-  isDark, collapsed, setCollapsed, onClose, pathname, onLogout,
+  isDark, collapsed, setCollapsed, onClose, pathname, onLogout, tenant, user
 }: SidebarContentProps) {
   const itemCls = (href: string) => `
     flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium
@@ -67,6 +69,29 @@ function SidebarContent({
         </button>
       </div>
 
+      {/* ── Company Info Section ── */}
+      {tenant && (
+        <div className={`p-3 flex-shrink-0 border-b ${isDark ? "border-white/[0.07]" : "border-black/[0.07]"}`}>
+          <div className="flex items-center gap-3 px-1 py-1 rounded-xl">
+            <div className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm ${
+              isDark ? "bg-teal-500/20 text-teal-400" : "bg-teal-100 text-teal-700"
+            }`}>
+              {tenant?.name?.charAt(0)?.toUpperCase() || "C"}
+            </div>
+            {!collapsed && (
+              <div className="flex flex-col overflow-hidden">
+                <span className={`text-sm font-bold truncate ${isDark ? "text-white" : "text-gray-900"}`}>
+                  {tenant?.name}
+                </span>
+                <span className={`text-[10px] uppercase font-semibold tracking-wider ${isDark ? "text-gray-500" : "text-gray-400"}`}>
+                  Workspace
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* ── Nav items ── */}
       <nav className="flex flex-col gap-1 p-3 flex-1 overflow-y-auto">
         {navItems.map((item) => {
@@ -89,14 +114,34 @@ function SidebarContent({
       <div className={`p-3 border-t flex-shrink-0 ${isDark ? "border-white/[0.07]" : "border-black/[0.07]"}`}>
         <button
           onClick={onLogout}
-          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium w-full transition-all border border-transparent
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl w-full transition-all border border-transparent text-left group
             ${isDark
-              ? "text-[#555] hover:text-red-400 hover:bg-red-500/[0.08] hover:border-red-500/20"
-              : "text-[#999] hover:text-red-500 hover:bg-red-50 hover:border-red-200/60"
+              ? "hover:bg-red-500/[0.08] hover:border-red-500/20"
+              : "hover:bg-red-50 hover:border-red-200/60"
             }`}
         >
-          <LogOut size={17} className="flex-shrink-0" />
-          {!collapsed && <span>Logout</span>}
+          {collapsed ? (
+            <LogOut size={17} className={`flex-shrink-0 transition-colors ${isDark ? "text-[#555] group-hover:text-red-400" : "text-[#999] group-hover:text-red-500"}`} />
+          ) : (
+            <>
+              <div className={`w-8 h-8 -ml-1.5 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 transition-colors
+                ${isDark ? "bg-white/[0.05] text-[#ccc] group-hover:bg-red-500/10 group-hover:text-red-400" : "bg-black/[0.05] text-[#666] group-hover:bg-red-100 group-hover:text-red-600"}`}
+              >
+                {user?.name?.charAt(0)?.toUpperCase() || "U"}
+              </div>
+              
+              <div className="flex flex-col overflow-hidden flex-1">
+                <span className={`text-sm font-semibold truncate transition-colors ${isDark ? "text-[#f0f0f4] group-hover:text-red-400" : "text-[#111] group-hover:text-red-600"}`}>
+                  {user?.name || "User"}
+                </span>
+                <span className={`text-[10px] uppercase font-semibold tracking-wider truncate transition-colors ${isDark ? "text-[#555] group-hover:text-red-400/70" : "text-[#999] group-hover:text-red-500/70"}`}>
+                  {(typeof user?.role === 'object' ? user?.role?.name : user?.role) || "Role"}
+                </span>
+              </div>
+              
+              <LogOut size={16} className={`flex-shrink-0 transition-colors ${isDark ? "text-[#555] group-hover:text-red-400" : "text-[#999] group-hover:text-red-500"}`} />
+            </>
+          )}
         </button>
       </div>
 
@@ -111,6 +156,23 @@ export default function Sidebar() {
   const router                          = useRouter();
   const [collapsed,  setCollapsed]      = useState(false);
   const [mobileOpen, setMobileOpen]     = useState(false);
+  const [tenant, setTenant]             = useState<any>(null);
+  const [user, setUser]                 = useState<any>(null);
+
+  useEffect(() => {
+    const t = localStorage.getItem("tenant");
+    if (t) {
+      try {
+        setTenant(JSON.parse(t));
+      } catch (e) {}
+    }
+    const u = localStorage.getItem("user");
+    if (u) {
+      try {
+        setUser(JSON.parse(u));
+      } catch (e) {}
+    }
+  }, []);
 
   function handleLogout() {
     Cookies.remove("accessToken");
@@ -126,6 +188,8 @@ export default function Sidebar() {
     setCollapsed,
     pathname,
     onLogout: handleLogout,
+    tenant,
+    user,
   };
 
   return (

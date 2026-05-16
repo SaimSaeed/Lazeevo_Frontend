@@ -5,6 +5,7 @@ import { useTheme } from "@/context/themeContext";
 import TabsSwitcher from "@/components/common/TabSwitcher";
 import KitchenTable from "./components/KitchenTable";
 import CashierTable from "./components/CashierTable";
+import AdminTable from "./components/AdminTable";
 import { toast } from "sonner";
 import { ProtectedAPI } from "@/lib/axios";
 import { UserStats } from "./types/userTypes";
@@ -15,17 +16,33 @@ export default function UserManagementPage() {
   const { isDark } = useTheme();
   const [activeTab, setActiveTab] = useState("cashier");
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [admins, setAdmins] = useState<UserStats>();
   const [cashiers, setCashiers] = useState<UserStats>();
   const [kitchen, setKitchen] = useState<UserStats>();
+  const [isSuper, setIsSuper] = useState<boolean>(false);
+
+  useEffect(() => {
+    const userStr = localStorage.getItem("user");
+    if (userStr) {
+      try {
+        const u = JSON.parse(userStr);
+        if (u?.role === "SUPER_ADMIN" || u?.role?.name === "SUPER_ADMIN") {
+          setIsSuper(true);
+        }
+      } catch (e) {}
+    }
+  }, []);
 
   const TABS = [
+    ...(isSuper ? [{ label: "Admins", value: "admin" }] : []),
     { label: "Cashiers", value: "cashier" },
     { label: "Kitchen", value: "kitchen" },
   ];
 
-  const currentRole = activeTab === "cashier" ? "CASHIER" : "KITCHEN";
+  const currentRole = activeTab === "admin" ? "ADMIN" : activeTab === "cashier" ? "CASHIER" : "KITCHEN";
 
   const userStats = [
+    ...(isSuper ? [{ label: "Total Admins", value: admins?.total ?? 0 }] : []),
     { label: "Total Cashiers", value: cashiers?.total ?? 0 },
     { label: "Total Kitchen", value: kitchen?.total ?? 0 },
   ];
@@ -37,12 +54,13 @@ export default function UserManagementPage() {
         const res = await ProtectedAPI.get("/user/staff/stats");
         console.log("This is the Stats", res);
         if (res?.data) {
+          setAdmins(res.data.admins);
           setCashiers(res.data.cashiers);
           setKitchen(res.data.kitchen);
         }
         setIsLoading(false);
-      } catch (error) {
-        toast.error(error);
+      } catch (error: any) {
+        toast.error(error?.message ?? "Failed to load stats.");
         console.log(error);
         setIsLoading(false);
       }
@@ -66,7 +84,7 @@ export default function UserManagementPage() {
           <p
             className={`text-sm mt-1 ${isDark ? "text-[#555]" : "text-[#999]"}`}
           >
-            Manage your cashiers and kitchen staff
+            {isSuper ? "Manage all restaurant staff and administrators across the platform" : "Manage your cashiers and kitchen staff"}
           </p>
         </div>
       </div>
@@ -77,7 +95,7 @@ export default function UserManagementPage() {
           <Spinner className="size-10 text-white" />
         </div>
       ) : (
-        <div className=" w-full grid grid-cols-2 md:grid-cols-2 gap-4 mb-8">
+        <div className={`w-full grid ${isSuper ? "grid-cols-3 md:grid-cols-3" : "grid-cols-2 md:grid-cols-2"} gap-4 mb-8`}>
           {userStats.map((stat, i) => (
             <StatCard
               key={i}
@@ -102,6 +120,7 @@ export default function UserManagementPage() {
       </div>
 
       {/* ── Table ── */}
+      {activeTab === "admin" && <AdminTable activeTab={currentRole} />}
       {activeTab === "cashier" && <CashierTable activeTab={currentRole} />}
       {activeTab === "kitchen" && <KitchenTable activeTab={currentRole} />}
     </div>

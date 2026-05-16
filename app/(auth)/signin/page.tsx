@@ -30,15 +30,11 @@ export default function SigninPage() {
       const response = await PublicAPI.post("/auth/login", { email, password });
 
       if (response?.data) {
-        const { token, ...user } = response.data;
+        const { accessToken, user, tenant } = response.data;
 
-        if (user?.role?.name !== "ADMIN") {
-          toast.error("Only admins can sign in via the web portal.");
-          return;
-        }
-
-        Cookies.set("accessToken", token, { expires: 1 });
+        Cookies.set("accessToken", accessToken, { expires: 1 });
         localStorage.setItem("user", JSON.stringify(user));
+        localStorage.setItem("tenant", JSON.stringify(tenant));
 
         toast.success("Welcome back!");
         router.push("/dashboard");

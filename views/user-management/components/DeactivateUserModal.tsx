@@ -1,28 +1,28 @@
 import { ProtectedAPI } from "@/lib/axios";
-import { Loader2, Trash2 } from "lucide-react";
+import { Loader2, UserX, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { DeleteModalProps } from "../types/userTypes";
+import { ToggleModalProps } from "../types/userTypes";
 
-export default function DeleteUserModal({ isDark, user, onClose, onSuccess }: DeleteModalProps) {
+export default function DeactivateUserModal({ isDark, user, onClose, onSuccess }: ToggleModalProps) {
   const [loading, setLoading] = useState(false);
 
-  async function handleDelete() {
+  async function handleDeactivate() {
     setLoading(true);
     try {
-      await ProtectedAPI.delete(`/users/staff/${user.id}`);
-      toast.success(`${user.name} removed successfully.`);
+      await ProtectedAPI.put(`/user/staff/${user.id}/toggle`);
+      toast.success(`${user.name} has been deactivated.`);
       onSuccess();
       onClose();
     } catch (err: any) {
-      toast.error(err?.response?.data?.message ?? "Failed to delete user.");
+      toast.error(err?.response?.data?.message ?? "Failed to deactivate user.");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4 animate-in fade-in duration-200">
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
@@ -44,24 +44,24 @@ export default function DeleteUserModal({ isDark, user, onClose, onSuccess }: De
 
         <div>
           <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center mb-4">
-            <Trash2 size={18} className="text-red-500" />
+            <UserX size={18} className="text-red-500 animate-pulse" />
           </div>
           <h2
             className={`text-lg font-extrabold tracking-tight ${isDark ? "text-[#f0f0f4]" : "text-[#111]"}`}
             style={{ fontFamily: "'Syne', sans-serif" }}
           >
-            Remove User
+            Deactivate User
           </h2>
           <p
-            className={`text-xs mt-1 ${isDark ? "text-[#555]" : "text-[#999]"}`}
+            className={`text-xs mt-1 leading-relaxed ${isDark ? "text-[#555]" : "text-[#999]"}`}
           >
-            Are you sure you want to remove{" "}
+            Are you sure you want to deactivate{" "}
             <span
               className={`font-semibold ${isDark ? "text-white" : "text-black"}`}
             >
               {user.name}
             </span>
-            ? This action cannot be undone.
+            ? They will immediately lose access and be unable to log into the POS or admin portal.
           </p>
         </div>
 
@@ -73,17 +73,17 @@ export default function DeleteUserModal({ isDark, user, onClose, onSuccess }: De
             Cancel
           </button>
           <button
-            onClick={handleDelete}
+            onClick={handleDeactivate}
             disabled={loading}
-            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-white bg-red-500 hover:bg-red-600 transition-all hover:scale-[1.01] disabled:opacity-60 disabled:cursor-not-allowed"
+            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-white bg-red-500 hover:bg-red-600 transition-all hover:scale-[1.01] disabled:opacity-60 disabled:cursor-not-allowed shadow-lg shadow-red-500/20"
           >
             {loading ? (
               <>
-                <Loader2 size={14} className="animate-spin" /> Removing...
+                <Loader2 size={14} className="animate-spin" /> Deactivating...
               </>
             ) : (
               <>
-                <Trash2 size={14} /> Remove
+                <UserX size={14} /> Deactivate
               </>
             )}
           </button>

@@ -5,9 +5,10 @@ import { useTheme } from "@/context/themeContext";
 import { toast } from "sonner";
 import { ProtectedAPI } from "@/lib/axios";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2, Search, X } from "lucide-react";
+import { Plus, Search, X, UserX, UserCheck } from "lucide-react";
 import AddUserModal from "./AddUserModal";
-import DeleteUserModal from "./DeleteUserModal";
+import DeactivateUserModal from "./DeactivateUserModal";
+import ActivateUserModal from "./ActivateUserModal";
 
 function CashierTable({ activeTab }: { activeTab?: string }) {
   const { isDark } = useTheme();
@@ -17,12 +18,26 @@ function CashierTable({ activeTab }: { activeTab?: string }) {
   const [total,        setTotal]        = useState(0);
   const [page,         setPage]         = useState(1);
   const [pageSize,     setPageSize]     = useState(10);
-  const [loading,      setLoading]      = useState(true);
-  const [showAdd,      setShowAdd]      = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<StaffUser | null>(null);
-  const [searchOpen,   setSearchOpen]   = useState(false);
-  const [searchInput,  setSearchInput]  = useState("");
-  const [searchTerm,   setSearchTerm]   = useState("");  // debounced
+  const [loading,          setLoading]          = useState(true);
+  const [showAdd,          setShowAdd]          = useState(false);
+  const [deactivateTarget, setDeactivateTarget] = useState<StaffUser | null>(null);
+  const [activateTarget,   setActivateTarget]   = useState<StaffUser | null>(null);
+  const [searchOpen,       setSearchOpen]       = useState(false);
+  const [searchInput,      setSearchInput]      = useState("");
+  const [searchTerm,       setSearchTerm]       = useState("");  // debounced
+  const [isSuper,          setIsSuper]          = useState(false);
+
+  useEffect(() => {
+    const userStr = localStorage.getItem("user");
+    if (userStr) {
+      try {
+        const u = JSON.parse(userStr);
+        if (u?.role === "SUPER_ADMIN" || u?.role?.name === "SUPER_ADMIN") {
+          setIsSuper(true);
+        }
+      } catch (e) {}
+    }
+  }, []);
 
   // ── Debounce search input ─────────────────────────────────────────────────
   useEffect(() => {
@@ -78,6 +93,15 @@ function CashierTable({ activeTab }: { activeTab?: string }) {
   const columns = [
     { key: "name",  label: "Name"  },
     { key: "email", label: "Email" },
+    ...(isSuper ? [{
+      key: "tenant",
+      label: "Restaurant",
+      render: (_: string, row: StaffUser) => (
+        <span className={`text-xs font-semibold ${isDark ? "text-teal-400" : "text-teal-700"}`}>
+          {row.tenant?.name ?? "System"}
+        </span>
+      ),
+    }] : []),
     {
       key:    "isActive",
       label:  "Status",
@@ -106,12 +130,25 @@ function CashierTable({ activeTab }: { activeTab?: string }) {
       key:    "actions",
       label:  "Actions",
       render: (_: string, row: StaffUser) => (
-        <button
-          onClick={(e) => { e.stopPropagation(); setDeleteTarget(row); }}
-          className={`p-1.5 rounded-lg transition-colors ${isDark ? "text-[#444] hover:text-red-400 hover:bg-red-500/10" : "text-[#ccc] hover:text-red-500 hover:bg-red-50"}`}
-        >
-          <Trash2 size={15} />
-        </button>
+        <div className="flex items-center gap-1">
+          {row.isActive ? (
+            <button
+              title="Deactivate User"
+              onClick={(e) => { e.stopPropagation(); setDeactivateTarget(row); }}
+              className={`p-1.5 rounded-lg transition-colors ${isDark ? "text-[#444] hover:text-amber-400 hover:bg-amber-500/10" : "text-[#ccc] hover:text-amber-600 hover:bg-amber-50"}`}
+            >
+              <UserX size={15} />
+            </button>
+          ) : (
+            <button
+              title="Activate User"
+              onClick={(e) => { e.stopPropagation(); setActivateTarget(row); }}
+              className={`p-1.5 rounded-lg transition-colors ${isDark ? "text-[#444] hover:text-teal-400 hover:bg-teal-500/10" : "text-[#ccc] hover:text-teal-600 hover:bg-teal-50"}`}
+            >
+              <UserCheck size={15} />
+            </button>
+          )}
+        </div>
       ),
     },
   ];
@@ -158,13 +195,15 @@ function CashierTable({ activeTab }: { activeTab?: string }) {
         )}
       </div>
 
-      <Button
-        onClick={() => setShowAdd(true)}
-        className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white bg-teal-600 hover:bg-teal-700 transition-all hover:scale-[1.01]"
-      >
-        <Plus size={15} />
-        Add Cashier
-      </Button>
+      {!isSuper && (
+        <Button
+          onClick={() => setShowAdd(true)}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white bg-teal-600 hover:bg-teal-700 transition-all hover:scale-[1.01]"
+        >
+          <Plus size={15} />
+          Add Cashier
+        </Button>
+      )}
     </div>
   );
 
@@ -192,11 +231,20 @@ function CashierTable({ activeTab }: { activeTab?: string }) {
         />
       )}
 
-      {deleteTarget && (
-        <DeleteUserModal
+      {deactivateTarget && (
+        <DeactivateUserModal
           isDark={isDark}
-          user={deleteTarget}
-          onClose={() => setDeleteTarget(null)}
+          user={deactivateTarget}
+          onClose={() => setDeactivateTarget(null)}
+          onSuccess={fetchStaff}
+        />
+      )}
+
+      {activateTarget && (
+        <ActivateUserModal
+          isDark={isDark}
+          user={activateTarget}
+          onClose={() => setActivateTarget(null)}
           onSuccess={fetchStaff}
         />
       )}

@@ -2,6 +2,7 @@
 "use client";
 import { CheckCircle } from "lucide-react";
 import { useTheme } from "@/context/themeContext";
+import { Fragment } from "react";
 
 interface StepIndicatorProps {
   currentStep: number;
@@ -23,9 +24,9 @@ export default function StepIndicator({ currentStep, steps }: StepIndicatorProps
         const isLast     = i === steps.length - 1;
 
         return (
-          <>
+          <Fragment key={step.label}>
             {/* Step bubble + label — no flex-1, just shrink-0 */}
-            <div key={step.label} className="flex items-center gap-3 flex-shrink-0">
+            <div className="flex items-center gap-3 flex-shrink-0">
               <div className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold transition-all ${
                 isComplete ? "bg-teal-600 text-white"
                 : isActive  ? "bg-teal-600 text-white ring-4 ring-teal-500/20"
@@ -52,7 +53,7 @@ export default function StepIndicator({ currentStep, steps }: StepIndicatorProps
                   : isDark ? "bg-white/[0.07]" : "bg-black/[0.07]"
               }`} />
             )}
-          </>
+          </Fragment>
         );
       })}
     </div>

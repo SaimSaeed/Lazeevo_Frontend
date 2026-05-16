@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AddUserModalProps } from "../types/userTypes";
 import { toast } from "sonner";
 import { ProtectedAPI } from "@/lib/axios";
-import { Eye, EyeOff, Loader2, Lock, Mail, Plus, User, X } from "lucide-react";
+import { Eye, EyeOff, Loader2, Lock, Mail, Plus, User, X, Building2 } from "lucide-react";
 
 export default function AddUserModal({
   isDark,
@@ -10,9 +10,20 @@ export default function AddUserModal({
   onClose,
   onSuccess,
 }: AddUserModalProps) {
-  const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [form, setForm] = useState({ name: "", email: "", password: "", tenantId: "" });
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [tenants, setTenants] = useState<{ id: number; name: string }[]>([]);
+
+  useEffect(() => {
+    if (role === "ADMIN") {
+      ProtectedAPI.get("/user/tenants")
+        .then((res) => {
+          if (res?.data) setTenants(res.data);
+        })
+        .catch(() => {});
+    }
+  }, [role]);
 
   const set = (k: string, v: string) => setForm((p) => ({ ...p, [k]: v }));
 
@@ -25,10 +36,25 @@ export default function AddUserModal({
     }
     setLoading(true);
     try {
-      await ProtectedAPI.post("/user/staff", { ...form, role });
-      toast.success(
-        `${role === "CASHIER" ? "Cashier" : "Kitchen staff"} added successfully.`,
-      );
+      if (role === "ADMIN") {
+        await ProtectedAPI.post("/user/admins", {
+          name: form.name,
+          email: form.email,
+          password: form.password,
+          ...(form.tenantId ? { tenantId: Number(form.tenantId) } : {}),
+        });
+        toast.success("Administrator added successfully.");
+      } else {
+        await ProtectedAPI.post("/user/staff", {
+          name: form.name,
+          email: form.email,
+          password: form.password,
+          role,
+        });
+        toast.success(
+          `${role === "CASHIER" ? "Cashier" : "Kitchen staff"} added successfully.`,
+        );
+      }
       onSuccess();
       onClose();
     } catch (err: any) {
@@ -75,12 +101,12 @@ export default function AddUserModal({
             className={`text-lg font-extrabold tracking-tight ${isDark ? "text-[#f0f0f4]" : "text-[#111]"}`}
             style={{ fontFamily: "'Syne', sans-serif" }}
           >
-            Add {role === "CASHIER" ? "Cashier" : "Kitchen Staff"}
+            Add {role === "CASHIER" ? "Cashier" : role === "ADMIN" ? "Administrator" : "Kitchen Staff"}
           </h2>
           <p
             className={`text-xs mt-1 ${isDark ? "text-[#555]" : "text-[#999]"}`}
           >
-            This user will be able to log in to the POS terminal.
+            {role === "ADMIN" ? "This user will manage restaurant operations and portal settings." : "This user will be able to log in to the POS terminal."}
           </p>
         </div>
 
@@ -149,6 +175,30 @@ export default function AddUserModal({
               </button>
             </div>
           </div>
+
+          {role === "ADMIN" && (
+            <div>
+              <label className={labelCls}>Assign Restaurant (Optional)</label>
+              <div className="relative">
+                <Building2
+                  size={15}
+                  className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${isDark ? "text-[#444]" : "text-[#ccc]"}`}
+                />
+                <select
+                  className={`${inputCls} pl-10 appearance-none`}
+                  value={form.tenantId}
+                  onChange={(e) => set("tenantId", e.target.value)}
+                >
+                  <option value="">System / Unassigned (Platform Admin)</option>
+                  {tenants.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Actions */}
