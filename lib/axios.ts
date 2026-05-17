@@ -14,11 +14,13 @@ ProtectedAPI.interceptors.request.use(
   (config) => {
     const token = Cookies.get("accessToken");
     const user = localStorage.getItem("user");
-    const parsedUser = JSON.parse(user);
+    const parsedUser = user ? JSON.parse(user) : null;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-      console.log("User", user)
-      config.headers.tenant_id = parsedUser.tenantId;
+      console.log("User", user);
+      if (parsedUser?.tenantId) {
+        config.headers.tenant_id = parsedUser.tenantId;
+      }
     }
     return config;
   },

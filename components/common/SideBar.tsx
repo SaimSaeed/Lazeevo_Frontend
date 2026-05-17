@@ -4,17 +4,12 @@ import { useState, useEffect } from "react";
 import { useTheme } from "@/context/themeContext";
 import {
   LayoutDashboard, Users, LogOut,
-  ChevronLeft, ChevronRight, Menu, X,
+  ChevronLeft, ChevronRight, Menu, X, Building2
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import { toast } from "sonner";
-
-const navItems = [
-  { label: "Analytics",       href: "/dashboard",       icon: LayoutDashboard },
-  { label: "User Management", href: "/dashboard/user-management", icon: Users           },
-];
 
 // ── Extracted outside — no longer created during render ───────────────────────
 interface SidebarContentProps {
@@ -31,6 +26,13 @@ interface SidebarContentProps {
 function SidebarContent({
   isDark, collapsed, setCollapsed, onClose, pathname, onLogout, tenant, user
 }: SidebarContentProps) {
+  const isSuper = user?.role === 'SUPER_ADMIN' || user?.role?.name === 'SUPER_ADMIN';
+  const navItems = [
+    { label: "Analytics",       href: "/dashboard",       icon: LayoutDashboard },
+    { label: "User Management", href: "/dashboard/user-management", icon: Users },
+    ...(isSuper ? [{ label: "Restaurants", href: "/dashboard/restaurants", icon: Building2 }] : []),
+  ];
+
   const itemCls = (href: string) => `
     flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium
     transition-all duration-150 cursor-pointer w-full
