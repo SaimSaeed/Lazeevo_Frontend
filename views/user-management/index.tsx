@@ -29,7 +29,9 @@ export default function UserManagementPage() {
         if (u?.role === "SUPER_ADMIN" || u?.role?.name === "SUPER_ADMIN") {
           setIsSuper(true);
         }
-      } catch (e) {}
+      } catch (e) {
+        console.log(e)
+      }
     }
   }, []);
 

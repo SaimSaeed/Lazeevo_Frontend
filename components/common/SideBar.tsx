@@ -161,6 +161,14 @@ export default function Sidebar() {
   const [tenant, setTenant]             = useState<any>(null);
   const [user, setUser]                 = useState<any>(null);
 
+  function handleLogout() {
+    Cookies.remove("accessToken");
+    Cookies.remove("refreshToken");
+    localStorage.clear();
+    toast.success("Logged out successfully.");
+    router.push("/signin");
+  }
+
   useEffect(() => {
     const t = localStorage.getItem("tenant");
     if (t) {
@@ -171,18 +179,19 @@ export default function Sidebar() {
     const u = localStorage.getItem("user");
     if (u) {
       try {
-        setUser(JSON.parse(u));
+        const parsedUser = JSON.parse(u);
+        const roleName = typeof parsedUser?.role === "object" ? parsedUser?.role?.name : parsedUser?.role;
+        if (roleName === "CASHIER" || roleName === "KITCHEN") {
+          Cookies.remove("accessToken");
+          Cookies.remove("refreshToken");
+          localStorage.clear();
+          router.push("/signin");
+          return;
+        }
+        setUser(parsedUser);
       } catch (e) {}
     }
-  }, []);
-
-  function handleLogout() {
-    Cookies.remove("accessToken");
-    Cookies.remove("refreshToken");
-    localStorage.clear();
-    toast.success("Logged out successfully.");
-    router.push("/signin");
-  }
+  }, [router]);
 
   const sharedProps: SidebarContentProps = {
     isDark,

@@ -31,6 +31,13 @@ export default function SigninPage() {
 
       if (response?.data) {
         const { accessToken, user, tenant } = response.data;
+        const roleName = typeof user?.role === "object" ? user?.role?.name : user?.role;
+
+        if (roleName === "CASHIER" || roleName === "KITCHEN") {
+          toast.error("Access denied: Cashier and Kitchen staff cannot log in to the web dashboard.");
+          setLoading(false);
+          return;
+        }
 
         Cookies.set("accessToken", accessToken, { expires: 1 });
         localStorage.setItem("user", JSON.stringify(user));
