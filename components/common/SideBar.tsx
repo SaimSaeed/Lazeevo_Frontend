@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useTheme } from "@/context/themeContext";
 import {
   LayoutDashboard, Users, LogOut,
-  ChevronLeft, ChevronRight, Menu, X, Building2
+  ChevronLeft, ChevronRight, Menu, X, Building2, Utensils
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -29,6 +29,7 @@ function SidebarContent({
   const isSuper = user?.role === 'SUPER_ADMIN' || user?.role?.name === 'SUPER_ADMIN';
   const navItems = [
     { label: "Analytics",       href: "/dashboard",       icon: LayoutDashboard },
+    { label: "Menu Management", href: "/dashboard/menu",  icon: Utensils },
     { label: "User Management", href: "/dashboard/user-management", icon: Users },
     ...(isSuper ? [{ label: "Restaurants", href: "/dashboard/restaurants", icon: Building2 }] : []),
   ];
